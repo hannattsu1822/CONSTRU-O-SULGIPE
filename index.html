@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cálculo de Horário de Entrada do Dia Posterior</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        input, button, select {
+            margin-top: 10px;
+            padding: 10px;
+            font-size: 16px;
+        }
+        .logo {
+            max-width: 200px;
+            margin-bottom: 20px;
+        }
+        .observacao {
+            margin-top: 15px;
+            font-style: italic;
+            color: #555;
+        }
+        .aviso, .resultado {
+            font-weight: bold;
+            line-height: 1.5; /* Espaçamento de 1,5 */
+        }
+        .aviso {
+            color: red;
+        }
+        .resultado {
+            padding: 10px;
+            border: 2px solid #000;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        .contatos {
+            margin-top: 10px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <img src="https://cdn.discordapp.com/attachments/1080841431675064320/1328512892202385529/channels4_profile.jpg?ex=6786f98c&is=6785a80c&hm=a28eee1eb8dde92e6756dd32e8f37f5af34d7dec13b5dc8992779561930801d9&" alt="Logo da Sulgipe" class="logo">
+
+    <h1>Cálculo de Horário de Entrada do Dia Posterior</h1>
+    <form id="timeForm">
+        <label for="dia">Escolha o Dia da Semana:</label>
+        <select id="dia" required>
+            <option value="0">Domingo</option>
+            <option value="1">Segunda-feira</option>
+            <option value="2">Terça-feira</option>
+            <option value="3">Quarta-feira</option>
+            <option value="4">Quinta-feira</option>
+            <option value="5">Sexta-feira</option>
+            <option value="6">Sábado</option>
+        </select><br>
+
+        <label for="saida">Horário de Saída (24 horas):</label>
+        <input id="saida" type="text" placeholder="Selecione o horário" required>
+        <button type="submit">Calcular Horário de Entrada Posterior</button>
+    </form>
+
+    <p id="entrada"></p>
+    <p class="observacao">Qualquer dúvida entrar em contato com a gerência.</p>
+    <p class="contatos">
+        79 9 9985-0384 - José Carlo<br>
+        79 9 9991-4379 - Denisson
+    </p>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        flatpickr("#saida", {
+            enableTime: true,
+            noCalendar: true,
+            dateFormat: "H:i",
+            time_24hr: true
+        });
+
+        document.getElementById('timeForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const saida = document.getElementById('saida').value;
+            const diaEscolhido = parseInt(document.getElementById('dia').value);
+            const diasDaSemana = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
+            
+            document.getElementById('entrada').innerHTML = '';
+
+            if (!saida) {
+                document.getElementById('entrada').innerHTML = `<span class="aviso">Por favor, insira um horário de saída válido.</span>`;
+                return;
+            }
+
+            const [hours, minutes] = saida.split(':').map(Number);
+
+            // Caso horário seja igual ou superior a 23:00
+            if (hours >= 23) {
+                document.getElementById('entrada').innerHTML = `<span class="aviso">ENTRAR EM CONTATO COM A GERÊNCIA PARA POSSÍVEL FOLGA DURANTE O TURNO DA MANHÃ.</span>`;
+                return;
+            }
+
+            // Lógica para jornada normal de trabalho
+            if ((diaEscolhido >= 1 && diaEscolhido <= 4 && (hours < 17 || (hours === 17 && minutes === 0))) || 
+                (diaEscolhido === 5 && (hours < 16 || (hours === 16 && minutes === 0)))) {
+                document.getElementById('entrada').innerHTML = `<span class="resultado">JORNADA NORMAL DE TRABALHO NO PRÓXIMO DIA.</span>`;
+                return;
+            }
+
+            // Cálculo de horário de entrada no dia posterior
+            let entradaHours = (hours + 11) % 24;
+            const entrada = `${entradaHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+            document.getElementById('entrada').innerHTML = `<span class="resultado">Dia e Horário de Entrada Posterior: ${diasDaSemana[(diaEscolhido + 1) % 7]} a partir das: ${entrada}</span>`;
+        });
+
+        // Define o dia atual como padrão no seletor
+        document.addEventListener('DOMContentLoaded', () => {
+            const hoje = new Date();
+            const diaAtual = hoje.getDay(); 
+            document.getElementById('dia').value = diaAtual;
+        });
+    </script>
+
+</body>
+</html>
